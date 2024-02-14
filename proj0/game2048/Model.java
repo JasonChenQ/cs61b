@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author TODO: Jiachen Qin
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -106,10 +106,82 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+    public boolean changecol(int col){  //helpermethod
+        boolean changed = false;
+        //boolean get_previous_value = false;
+        int get_row = size()-1; //每次都是两个合并，所以记录前一个
+        int previous_value = 0; //考虑null，不知道是否冗余
+        int current_row = size()-1;//从第一个不等于null的开始进行计算
+        for (int previous_row=size()-1;previous_row>=0;previous_row-=1) {
+            if (tile(col,previous_row)==null) { //是空就跳过
+                continue;
+            }
+            if (previous_value == 0) { //没拿到的时候拿东西
+                previous_value = tile(col,previous_row).value();
+                get_row = previous_row;
+                //get_previous_value = true;
+                continue;  //拿到之后再进行运算，且跳过这一轮来减少代码逻辑
+            }
+            if (previous_value != 0 & tile(col,previous_row).value() != previous_value) { //拿到之后判断：不同就把上一个放掉
+                if (current_row != get_row) {
+                    changed = true;  //注意判断是否真实移动
+                    Tile t = board.tile(col, get_row);
+                    board.move(col, current_row, t);
+                }
+                previous_value = tile(col, previous_row).value();
+                get_row = previous_row;
+                current_row -= 1; //如果不一样，无论移动没有，下一个要被操作的tilt会变化
+            }
+            else if (previous_value != 0 & tile(col,previous_row).value() == previous_value) { // 相同则两个都放掉
+                score += previous_value*2;
+                Tile t = board.tile(col,get_row);
+                board.move(col, current_row,t);
+                t = board.tile(col, previous_row);
+                board.move(col, current_row, t);
+                previous_value =0;
+                current_row -= 1;
+                //get_previous_value = false; //两个合并之后就没有前一个了
+                changed = true;
+                }
+            //查缺补漏：有一个在循环之后没放掉时
+
+                //如果不同，则添加
+                //如果相同，则修改
+                //考虑到最后一直null？(利用current_row来填充）
+
+        }
+        if (previous_value!=0&current_row!=get_row) {
+            Tile t = board.tile(col, get_row);
+            board.move(col, current_row, t);
+            changed = true; //保证最后一个放掉
+        }
+        return changed;
+    }
+    public boolean northway(boolean changed) {
+        for (int col=0;col<size();col+=1) {
+            changed = changecol(col)|changed;
+        }
+        return changed;
+    }
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
+        if (side == Side.NORTH) {
+            changed = northway(changed);
 
+                    /**
+                    #### up:
+            1. Each column has the same operations.
+            2. We add two variables to record the previous value and the current column.
+            3. If there is null, just be sure to skip. After the last one is reached and it doesn't change, add it to the board
+            4. For the rest, add null to it.
+                     */
+        }
+        if (side != Side.NORTH)  {
+            board.setViewingPerspective(side);
+            changed = northway(changed);
+            board.setViewingPerspective(Side.NORTH);
+        }
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
@@ -137,8 +209,17 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
+        boolean whetheremptySpaceExists = false;
+        for (int i=0;i<b.size();i+=1) {
+            for (int j=0;j<b.size();j+=1) {
+                if (b.tile(i,j) == null) {
+                    whetheremptySpaceExists = true;
+                }
+            }
+        }
+
         // TODO: Fill in this function.
-        return false;
+        return whetheremptySpaceExists;
     }
 
     /**
@@ -147,8 +228,20 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
+        boolean whethermaxTileExists = false;
+        for (int i=0;i<b.size();i+=1) {
+            for (int j=0;j<b.size();j+=1) {
+                if (b.tile(i,j) == null) {
+                    continue;
+                }
+                if (b.tile(i,j).value() == MAX_PIECE) {
+                    whethermaxTileExists = true;
+                }
+            }
+        }
+
         // TODO: Fill in this function.
-        return false;
+        return whethermaxTileExists;
     }
 
     /**
@@ -158,8 +251,26 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
+        if (Model.emptySpaceExists(b)) {
+            return true;
+        }
         // TODO: Fill in this function.
-        return false;
+        boolean whetheratLeastOneMoveExists = false;
+        for (int i=0;i<b.size();i+=1) {
+            for (int j=0;j<b.size()-1;j+=1) {
+                if (b.tile(i,j).value() == b.tile(i,j+1).value()) {
+                    whetheratLeastOneMoveExists = true;
+                }
+            }
+        }
+        for (int j=0;j<b.size();j+=1) {
+            for (int i=0;i<b.size()-1;i+=1) {
+                if (b.tile(i,j).value() == b.tile(i+1,j).value()) {
+                    whetheratLeastOneMoveExists = true;
+                }
+            }
+        }
+        return whetheratLeastOneMoveExists;
     }
 
 
