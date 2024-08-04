@@ -1,3 +1,5 @@
+package note;
+
 public class implementingfibo {
     public static int fibo(int x) {
         int[] numbers = new int[]{0,1};

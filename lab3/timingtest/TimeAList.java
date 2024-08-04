@@ -1,10 +1,12 @@
 package timingtest;
 import edu.princeton.cs.algs4.Stopwatch;
+import org.checkerframework.checker.units.qual.A;
 
 /**
  * Created by hug.
  */
 public class TimeAList {
+
     private static void printTimingTable(AList<Integer> Ns, AList<Double> times, AList<Integer> opCounts) {
         System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
         System.out.printf("------------------------------------------------------------\n");
@@ -23,5 +25,24 @@ public class TimeAList {
 
     public static void timeAListConstruction() {
         // TODO: YOUR CODE HERE
+        AList<Integer> onelist = new AList();
+        AList<Integer> Ns = new AList();
+        AList<Double> times = new AList();
+        AList<Integer> opCounts = new AList();
+        int allops = 1000;
+        int time = 8;
+        for (int j = 0; j < time; j++) {
+            Stopwatch sw = new Stopwatch();
+            for (int i = 0; i < allops* Math.pow(2, j); i++) {
+                //record the elapsed time
+                onelist.addLast(1);
+            }
+            double timeInSeconds = sw.elapsedTime();
+            int oneNs = (int) (allops * Math.pow(2, j));
+            Ns.addLast(oneNs);
+            times.addLast(timeInSeconds);
+            opCounts.addLast(oneNs);
+        }
+        printTimingTable(Ns, times, opCounts);
     }
 }
